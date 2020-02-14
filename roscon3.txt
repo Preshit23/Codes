@@ -1,0 +1,64 @@
+#subscriber
+
+
+import rospy
+import math
+from std_msgs.msg import Int32MultiArray
+def callback(data):
+    y=Int32MultiArray()
+    y.data=[data.data[0],data.data[1],data.data[2]]
+    theta =[0,0,0]
+    angledes =[0,0,0]
+    angledesP =[0,0,0]
+    xod =[10,20,30]
+    Kp=0.1
+    yod =[50,20,30]
+    a = [[0,0,0],
+         [1,0,1],
+	 [1,1,0],]
+        
+        
+
+    h=1  
+    for i in range(0,12):
+        for i in range(0,2):
+            s=0
+            for k in range(0,2):
+                s=s+(a[i][k]*(y.data[k]-y.data[i]))         
+            y.data[i]=y.data[i]+h*s
+    for l in range(0,2):
+	theta[l]=math.atan(yod[l]/xod[l])
+    	angledes[l]=theta[l]-y.data[l]
+        angledesP[l]=Kp*angledes[l]
+    rospy.loginfo(y)
+    rospy.loginfo(theta)
+    rospy.loginfo(angledes)
+    rospy.loginfo(angledesP)  
+
+
+def listener():
+    rospy.init_node('listener',anonymous=True)
+    rospy.Subscriber('chatter',Int32MultiArray,callback)
+    rospy.spin()
+
+if __name__ == '__main__':
+    listener()
+
+
+
+
+
+#publisher
+
+import rospy
+from std_msgs.msg import Int32MultiArray
+pub = rospy.Publisher('chatter',Int32MultiArray,queue_size=1)
+rospy.init_node('talker',anonymous=True)
+rate = rospy.Rate(1)
+while not rospy.is_shutdown():
+     x=Int32MultiArray()
+     x.data=[1,2,3]
+     rospy.loginfo(x)
+     pub.publish(x)
+     rate.sleep()
+     
